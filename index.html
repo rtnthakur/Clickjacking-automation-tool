@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CJ-Hunter: V3 Ultimate Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --panel-bg: #111;
+            --neon-green: #0f0;
+            --neon-red: #f00;
+            --neon-blue: #00f0ff;
+            --neon-yellow: #ffcc00;
+            --text-main: #eee;
+            --border-color: #333;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-green); }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 300px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--neon-green);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            text-align: center;
+            color: var(--neon-green);
+            text-shadow: 0 0 8px var(--neon-green);
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #444;
+            padding-bottom: 10px;
+        }
+
+        .section-header {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="file"], select {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 8px;
+            width: 100%;
+            outline: none;
+            font-size: 0.8rem;
+        }
+
+        input[type="text"]:focus { border-color: var(--neon-blue); }
+
+        button {
+            background: transparent;
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            padding: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        button:hover { background: var(--neon-green); color: #000; }
+        
+        .btn-add { color: var(--neon-blue); border-color: var(--neon-blue); }
+        .btn-add:hover { background: var(--neon-blue); color: #000; }
+
+        .btn-dl { color: var(--neon-yellow); border-color: var(--neon-yellow); }
+        .btn-dl:hover { background: var(--neon-yellow); color: #000; }
+
+        .url-queue {
+            flex: 1;
+            overflow-y: auto;
+            border-top: 1px solid #333;
+            margin-top: 15px;
+            padding-top: 10px;
+        }
+
+        .queue-item {
+            padding: 6px;
+            border-bottom: 1px solid #222;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+        }
+        .queue-item:hover { background: #222; }
+        .queue-item.active { border-left: 3px solid var(--neon-green); background: rgba(0, 255, 0, 0.1); }
+        
+        /* --- MAIN DISPLAY --- */
+        .main-display {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Top Bar */
+        .status-bar {
+            background: #0a0a0a;
+            padding: 10px 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Iframe Area */
+        .frame-container {
+            flex: 1; /* Takes remaining height */
+            position: relative;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect width="10" height="10" fill="%23111"/><rect x="10" y="10" width="10" height="10" fill="%23111"/></svg>');
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        /* Floating Controls */
+        .manual-actions {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            padding: 8px 15px;
+            border: 1px solid var(--neon-blue);
+            border-radius: 4px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* --- INFO PANEL (NEW SECTION) --- */
+        .info-panel {
+            height: 220px; /* Fixed height for info area */
+            background-color: #080808;
+            border-top: 2px solid var(--neon-green);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; /* 3 Columns */
+            gap: 1px; /* Gap for borders */
+            background-color: #333; /* Border color simulation */
+        }
+
+        .info-card {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .text-desc { color: var(--neon-blue); }
+        .text-imp { color: var(--neon-red); }
+        .text-sugg { color: var(--neon-green); }
+
+        .info-card p {
+            font-size: 0.8rem;
+            color: #ccc;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .code-block {
+            background: #111;
+            padding: 5px;
+            border: 1px solid #333;
+            font-family: monospace;
+            color: #aaa;
+            margin-top: 5px;
+            display: block;
+            font-size: 0.75rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">⚡ CJ-HUNTER V3</div>
+
+        <div class="section-header" style="color:var(--neon-blue)">1. Quick Add</div>
+        <input type="text" id="singleUrlInput" placeholder="example.com">
+        <button onclick="addSingleUrl()" class="btn-add">+ Test Now</button>
+
+        <div class="section-header">2. Bulk List</div>
+        <input type="file" id="fileInput" accept=".txt">
+
+        <div class="section-header">3. Auto Scan</div>
+        <select id="scanSpeed">
+            <option value="5000">Normal (5s)</option>
+            <option value="3000">Fast (3s)</option>
+            <option value="9999999">Manual Mode</option>
+        </select>
+        <button onclick="toggleScan()" id="toggleBtn">▶ Start Scan</button>
+        <button onclick="exportReport()" class="btn-dl">⬇ CSV Report</button>
+        <button onclick="clearAll()" style="color:#777; border-color:#555;">Clear All</button>
+
+        <div class="section-header">Targets (<span id="queueCount">0</span>)</div>
+        <div class="url-queue" id="urlList"></div>
+
+        <div id="wm-container" style="margin-top: auto; padding-top: 15px; text-align: center; border-top: 1px solid #222;"></div>
+    </div>
+
+    <div class="main-display">
+        
+        <div class="status-bar">
+            <div style="font-size: 0.9rem;">
+                <span style="color:#777">TARGET:</span> 
+                <span id="currentUrlDisplay" style="color:var(--neon-blue); font-weight:bold;">Waiting...</span>
+            </div>
+            <div style="font-size: 0.9rem;">
+                <span style="color:#777">STATUS:</span> 
+                <span id="timerDisplay" style="color:var(--neon-green)">IDLE</span>
+            </div>
+        </div>
+
+        <div class="frame-container">
+            <iframe id="pocFrame" src="about:blank"></iframe>
+            
+            <div class="manual-actions">
+                <span style="color:#fff; font-size:0.8rem;">Is website visible?</span>
+                <button onclick="markResult('vuln')" style="border-color:var(--neon-red); color:var(--neon-red); width:auto;">YES (Vuln)</button>
+                <button onclick="markResult('safe')" style="border-color:#fff; color:#fff; width:auto;">NO (Safe)</button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            
+            <div class="info-card">
+                <h3 class="text-desc">📌 Vulnerability Description</h3>
+                <p>
+                    <strong>Clickjacking (UI Redress Attack)</strong> occurs when an attacker uses multiple transparent or opaque layers (iframes) to trick a user into clicking on a button or link on another page when they intended to click on the top-level page.
+                </p>
+                <br>
+                <p>This bypasses CSRF tokens because the request is initiated by the user's legitimate click action.</p>
+            </div>
+
+            <div class="info-card">
+                <h3 class="text-imp">⚠️ Business Impact</h3>
+                <p>If vulnerable, an attacker can:</p>
+                <ul style="padding-left:15px; margin:5px 0; font-size:0.8rem; color:#ccc;">
+                    <li>Force users to like/follow pages.</li>
+                    <li>Make unauthorized money transfers.</li>
+                    <li>Change account settings (password/email).</li>
+                    <li>Download malware silently.</li>
+                    <li>Capture keystrokes (if combined with other attacks).</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3 class="text-sugg">🛡️ Remediation / Suggestion</h3>
+                <p>Implement the following HTTP Headers on the server:</p>
+                
+                <div style="margin-top:5px;">
+                    <span style="color:#fff; font-size:0.75rem;">1. X-Frame-Options (Legacy)</span>
+                    <code class="code-block">X-Frame-Options: DENY</code>
+                    <code class="code-block">X-Frame-Options: SAMEORIGIN</code>
+                </div>
+
+                <div style="margin-top:10px;">
+                    <span style="color:#fff; font-size:0.75rem;">2. Content-Security-Policy (Modern)</span>
+                    <code class="code-block">Content-Security-Policy: frame-ancestors 'none';</code>
+                    <code class="code-block">Content-Security-Policy: frame-ancestors 'self';</code>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Logic similar to V2 but optimized
+        let urls = [];
+        let currentIndex = -1;
+        let intervalId = null;
+        let isScanning = false;
+        let results = {};
+
+        function addSingleUrl() {
+            let u = document.getElementById('singleUrlInput').value.trim();
+            if(!u) return;
+            if(!u.startsWith('http')) u = 'https://' + u;
+            urls.push(u);
+            document.getElementById('singleUrlInput').value = '';
+            renderQueue();
+            loadUrl(urls.length-1);
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e){
+            const f = e.target.files[0];
+            if(!f) return;
+            const r = new FileReader();
+            r.onload = function(e){
+                const t = e.target.result;
+                const newU = t.split('\n').map(x=>x.trim()).filter(x=>x.length>0);
+                urls = [...urls, ...newU];
+                renderQueue();
+            };
+            r.readAsText(f);
+        });
+
+        function renderQueue() {
+            const list = document.getElementById('urlList');
+            document.getElementById('queueCount').innerText = urls.length;
+            list.innerHTML = '';
+            urls.forEach((u, i) => {
+                const d = document.createElement('div');
+                d.className = `queue-item ${i===currentIndex?'active':''}`;
+                let icon = '';
+                if(results[i]==='vuln') icon='⚠️';
+                if(results[i]==='safe') icon='🛡️';
+                d.innerHTML = `<span>${i+1}. ${u.substring(0,25)}...</span><span>${icon}</span>`;
+                d.onclick = ()=>{ stopScan(); loadUrl(i); };
+                list.appendChild(d);
+            });
+        }
+
+        function toggleScan() {
+            if(isScanning) { stopScan(); return; }
+            if(urls.length===0) return alert("No URLs!");
+            isScanning=true;
+            document.getElementById('toggleBtn').innerText = "⏹ STOP";
+            document.getElementById('toggleBtn').style.borderColor = "var(--neon-red)";
+            document.getElementById('toggleBtn').style.color = "var(--neon-red)";
+            if(currentIndex<0) currentIndex=0;
+            processNext();
+            const spd = parseInt(document.getElementById('scanSpeed').value);
+            if(spd < 90000) intervalId = setInterval(processNext, spd);
+        }
+
+        function stopScan() {
+            isScanning=false;
+            clearInterval(intervalId);
+            document.getElementById('toggleBtn').innerText = "▶ START SCAN";
+            document.getElementById('toggleBtn').style.borderColor = "var(--neon-green)";
+            document.getElementById('toggleBtn').style.color = "var(--neon-green)";
+            document.getElementById('timerDisplay').innerText = "PAUSED";
+        }
+
+        function processNext() {
+            if(currentIndex >= urls.length) { stopScan(); alert("Finished!"); return; }
+            loadUrl(currentIndex);
+            let time = parseInt(document.getElementById('scanSpeed').value)/1000;
+            document.getElementById('timerDisplay').innerText = `NEXT IN ${time}s`;
+            currentIndex++;
+        }
+
+        function loadUrl(i) {
+            currentIndex = i;
+            let u = urls[i];
+            if(!u.startsWith('http')) u='https://'+u;
+            document.getElementById('pocFrame').src = u;
+            document.getElementById('currentUrlDisplay').innerText = u;
+            renderQueue();
+        }
+
+        function markResult(status) {
+            if(urls.length===0) return;
+            results[currentIndex] = status;
+            renderQueue();
+        }
+
+        function exportReport() {
+            let csv = "ID,URL,STATUS,IMPACT,REMEDIATION\n";
+            urls.forEach((u,i) => {
+                let s = results[i]?results[i].toUpperCase():"UNTESTED";
+                let imp = s==='VULN' ? "High (Clickjacking)" : "None";
+                let rem = s==='VULN' ? "Set X-Frame-Options: DENY" : "N/A";
+                csv += `${i+1},${u},${s},${imp},${rem}\n`;
+            });
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+            a.download = 'cj_report.csv';
+            a.click();
+        }
+
+        function clearAll() {
+            urls=[]; results={}; currentIndex=-1; stopScan();
+            document.getElementById('pocFrame').src="about:blank";
+            renderQueue();
+        }
+
+        // --- ENCRYPTED DEVELOPER SIGNATURE ---
+        // This decodes the hex values to display: "Developed by rtnthakur"
+        (function() {
+            const _0x4c2 = "\x44\x65\x76\x65\x6c\x6f\x70\x65\x64\x20\x62\x79\x20\x72\x74\x6e\x74\x68\x61\x6b\x75\x72"; 
+            const _0xEl = document.getElementById('wm-container');
+            if(_0xEl) {
+                _0xEl.style.color = "#555";
+                _0xEl.style.fontSize = "0.7rem";
+                _0xEl.style.fontFamily = "monospace";
+                _0xEl.innerText = _0x4c2;
+            }
+        })();
+    </script>
+</body>
+</html>
